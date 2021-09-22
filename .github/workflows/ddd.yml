@@ -2,41 +2,28 @@ name: sync-764763903a/xdd
 
 on:
   schedule:
-  - cron:  "*/15 * * * *"
+    - cron: '25 */3 * * *'
   workflow_dispatch:
   watch:
     types: started
-
+  repository_dispatch:
+    types: sync-xdd-x
 jobs:
-  build:
+  repo-sync:
+    env:
+      PAT: ${{ secrets.PAT }} 
     runs-on: ubuntu-latest
-    if: ${{ github.event.repository.owner.id == github.event.sender.id }}
-    timeout-minutes: 2
-
+    if: github.event.repository.owner.id == github.event.sender.id
     steps:
-    - name: Init Build Dependencies
-      env:
-        DEBIAN_FRONTEND: noninteractive
-      run: |
-        sudo -E rm -rf /etc/apt/sources.list.d
-        sudo -E apt-get update -y
-        sudo -E apt-get install -y build-essential git git-core curl wget
-        sudo -E apt-get clean -y
-        git config --global user.name 'GitHub Actions' && git config --global user.email 'noreply@github.com'
-    - name: Clone main
-      run: |
-        git clone -b main https://github.com/764763903a/xdd-plus.git main
-    - name: Push main
-      uses: ad-m/github-push-action@master
-      with:
-        directory: main
-        github_token: ${{ secrets.SYNC }}
-        branch: mian
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
-    - name: Delete Workflow Runs
-      uses: Mattraks/delete-workflow-runs@main
-      with:
-        token: ${{ github.token }}
-        repository: ${{ github.repository }}
-        retain_days: 1
-        keep_minimum_runs: 0
+      - name: sync xdd-x
+        uses: repo-sync/github-sync@v2
+        if: env.PAT
+        with:
+          source_repo: "https://github.com/764763903a/xdd-plus.git"
+          source_branch: "main"
+          destination_branch: "xdd-plus"
+          github_token: ${{ secrets.PAT }}
