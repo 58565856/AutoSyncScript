@@ -1,4 +1,4 @@
-	name: 同步764763903a/xdd-plus仓库
+name: 同步764763903a/xdd-plus仓库
 on:
   schedule:
     - cron: '36 */8 * * *'
